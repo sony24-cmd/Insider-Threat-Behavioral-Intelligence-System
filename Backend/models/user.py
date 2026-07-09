@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy.orm import relationship
 
 from database import Base
 
@@ -23,3 +24,11 @@ class User(Base):
     designation = Column(String, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # One-to-One Relationship with Employee
+    employee = relationship(
+        "Employee",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )

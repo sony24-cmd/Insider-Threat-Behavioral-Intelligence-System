@@ -16,11 +16,19 @@ from database import Base
 class Employee(Base):
     __tablename__ = "employees"
 
+    # ==========================
     # Primary Key
+    # ==========================
     id = Column(Integer, primary_key=True, index=True)
 
+    # ==========================
     # Employee Details
-    employee_id = Column(String(20), unique=True, nullable=False)
+    # ==========================
+    employee_id = Column(
+        String(20),
+        unique=True,
+        nullable=False,
+    )
 
     user_id = Column(
         Integer,
@@ -29,11 +37,30 @@ class Employee(Base):
         unique=True,
     )
 
-    department = Column(String(100), nullable=False)
-    designation = Column(String(100), nullable=False)
-    manager = Column(String(100), nullable=True)
-    phone = Column(String(20), nullable=True)
-    joining_date = Column(Date, nullable=True)
+    department = Column(
+        String(100),
+        nullable=False,
+    )
+
+    designation = Column(
+        String(100),
+        nullable=False,
+    )
+
+    manager = Column(
+        String(100),
+        nullable=True,
+    )
+
+    phone = Column(
+        String(20),
+        nullable=True,
+    )
+
+    joining_date = Column(
+        Date,
+        nullable=True,
+    )
 
     status = Column(
         String(30),
@@ -41,7 +68,9 @@ class Employee(Base):
         nullable=False,
     )
 
+    # ==========================
     # Timestamps
+    # ==========================
     created_at = Column(
         DateTime,
         default=datetime.utcnow,
@@ -70,14 +99,30 @@ class Employee(Base):
         cascade="all, delete-orphan",
     )
 
-    # ----------------------------------------------------
-    # AccessPrivilege model has NOT been created yet.
-    # Uncomment this relationship after creating:
-    # Backend/models/access_privilege.py
-    # ----------------------------------------------------
+    # One Employee ↔ Many Access Privileges
+    privileges = relationship(
+        "AccessPrivilege",
+        back_populates="employee",
+        cascade="all, delete-orphan",
+    )
 
-    # privileges = relationship(
-    #     "AccessPrivilege",
-    #     back_populates="employee",
-    #     cascade="all, delete-orphan",
-    # )
+    # One Employee ↔ Many Activity Logs
+    activity_logs = relationship(
+        "ActivityLog",
+        back_populates="employee",
+        cascade="all, delete-orphan",
+    )
+
+    # One Employee ↔ Many Risk Scores
+    risk_scores = relationship(
+        "RiskScore",
+        back_populates="employee",
+        cascade="all, delete-orphan",
+    )
+
+    # One Employee ↔ Many Alerts
+    alerts = relationship(
+        "Alert",
+        back_populates="employee",
+        cascade="all, delete-orphan",
+    )

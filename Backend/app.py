@@ -12,6 +12,7 @@ from models.access_privilege import AccessPrivilege
 from models.activity_log import ActivityLog
 from models.risk_score import RiskScore
 from models.alert import Alert
+from models.notification import Notification
 
 # ==========================================
 # Import Routers
@@ -25,6 +26,11 @@ from routes.access_privilege import router as access_router
 from routes.activity_log import router as activity_log_router
 from routes.risk_score import router as risk_score_router
 from routes.alert import router as alert_router
+from routes.notification_routes import router as notification_router
+from routes.dashboard import router as dashboard_router
+
+# ========= NEW AI ROUTER =========
+from routes.ai import router as ai_router
 
 # ==========================================
 # Create Database Tables
@@ -52,6 +58,11 @@ app.include_router(access_router)
 app.include_router(activity_log_router)
 app.include_router(risk_score_router)
 app.include_router(alert_router)
+app.include_router(notification_router)
+app.include_router(dashboard_router)
+
+# ========= REGISTER AI ROUTER =========
+app.include_router(ai_router)
 
 # ==========================================
 # Root Endpoint

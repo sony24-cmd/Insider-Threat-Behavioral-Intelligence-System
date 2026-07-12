@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from models.alert import Alert
 from schemas.alert import AlertCreate, AlertUpdate
 
+# Import Notification Service
+from services.notification_service import create_notification_from_alert
+
 
 # ==========================================
 # Create Alert
@@ -17,6 +20,10 @@ def create_alert(
     db.add(new_alert)
     db.commit()
     db.refresh(new_alert)
+
+    # Automatically create notification for High/Critical alerts
+    if new_alert.severity in ["High", "Critical"]:
+        create_notification_from_alert(db, new_alert)
 
     return new_alert
 

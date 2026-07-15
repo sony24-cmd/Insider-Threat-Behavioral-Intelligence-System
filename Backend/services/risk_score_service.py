@@ -8,13 +8,20 @@ from schemas.risk_score import (
 
 
 # ==========================================
-# Create Risk Score (Manual API)
+# Create Risk Score
 # ==========================================
+
 def create_risk_score(
     db: Session,
-    risk: RiskScoreCreate,
+    risk_score: RiskScoreCreate,
 ):
-    db_risk = RiskScore(**risk.model_dump())
+
+    db_risk = RiskScore(
+        employee_id=risk_score.employee_id,
+        risk_score=risk_score.risk_score,
+        risk_level=risk_score.risk_level,
+        remarks=risk_score.remarks,
+    )
 
     db.add(db_risk)
     db.commit()
@@ -24,21 +31,20 @@ def create_risk_score(
 
 
 # ==========================================
-# Create Risk Score (AI Prediction)
+# Save AI Risk Score
 # ==========================================
+
 def save_ai_risk_score(
     db: Session,
     employee_id: int,
     confidence: float,
 ):
-    """
-    Save AI prediction as Risk Score.
-    confidence is already a percentage (0-100).
-    """
 
     score = round(confidence, 2)
 
-    if score >= 70:
+    if score >= 80:
+        level = "Critical"
+    elif score >= 60:
         level = "High"
     elif score >= 40:
         level = "Medium"
@@ -60,8 +66,17 @@ def save_ai_risk_score(
 
 
 # ==========================================
-# Get Risk Score By ID
+# Get All
 # ==========================================
+
+def get_all_risk_scores(db: Session):
+    return db.query(RiskScore).all()
+
+
+# ==========================================
+# Get One
+# ==========================================
+
 def get_risk_score(
     db: Session,
     risk_id: int,
@@ -74,59 +89,54 @@ def get_risk_score(
 
 
 # ==========================================
-# Get All Risk Scores
+# Update
 # ==========================================
-def get_all_risk_scores(
-    db: Session,
-):
-    return db.query(RiskScore).all()
 
-
-# ==========================================
-# Update Risk Score
-# ==========================================
 def update_risk_score(
     db: Session,
     risk_id: int,
-    risk: RiskScoreUpdate,
+    risk_update: RiskScoreUpdate,
 ):
-    db_risk = (
+
+    risk = (
         db.query(RiskScore)
         .filter(RiskScore.id == risk_id)
         .first()
     )
 
-    if not db_risk:
+    if not risk:
         return None
 
-    update_data = risk.model_dump(exclude_unset=True)
-
-    for key, value in update_data.items():
-        setattr(db_risk, key, value)
+    for key, value in risk_update.model_dump(
+        exclude_unset=True
+    ).items():
+        setattr(risk, key, value)
 
     db.commit()
-    db.refresh(db_risk)
+    db.refresh(risk)
 
-    return db_risk
+    return risk
 
 
 # ==========================================
-# Delete Risk Score
+# Delete
 # ==========================================
+
 def delete_risk_score(
     db: Session,
     risk_id: int,
 ):
-    db_risk = (
+
+    risk = (
         db.query(RiskScore)
         .filter(RiskScore.id == risk_id)
         .first()
     )
 
-    if not db_risk:
+    if not risk:
         return None
 
-    db.delete(db_risk)
+    db.delete(risk)
     db.commit()
 
-    return db_risk
+    return risk

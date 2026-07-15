@@ -1,14 +1,11 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
-from database import get_db
-
-from schemas.ai_prediction import (
+from schemas.ai_schema import (
     AIPredictionRequest,
     AIPredictionResponse,
 )
 
-from services.ai_prediction_service import analyze_employee
+from services.ai_service import predict_risk
 
 router = APIRouter(
     prefix="/ai",
@@ -16,18 +13,18 @@ router = APIRouter(
 )
 
 
+# ==========================================
+# AI Risk Prediction
+# ==========================================
+
 @router.post(
     "/predict-risk",
     response_model=AIPredictionResponse,
 )
 def predict_employee_risk(
     request: AIPredictionRequest,
-    db: Session = Depends(get_db),
 ):
-
-    return analyze_employee(
-        db=db,
-        employee_id=request.employee_id,
+    result = predict_risk(
         login_count=request.login_count,
         logout_count=request.logout_count,
         usb_connect=request.usb_connect,
@@ -35,3 +32,5 @@ def predict_employee_risk(
         http_visits=request.http_visits,
         total_events=request.total_events,
     )
+
+    return result

@@ -1,7 +1,11 @@
 from sqlalchemy.orm import Session
 
 from models.notification import Notification
-from schemas.notification import NotificationCreate
+
+from schemas.notification import (
+    NotificationCreate,
+    NotificationUpdate,
+)
 
 
 # ==========================================
@@ -10,60 +14,45 @@ from schemas.notification import NotificationCreate
 
 def create_notification(
     db: Session,
-    notification: NotificationCreate
+    notification: NotificationCreate,
 ):
-    new_notification = Notification(
-        **notification.model_dump()
+
+    db_notification = Notification(
+        title=notification.title,
+        message=notification.message,
+        notification_type=notification.notification_type,
+        status=notification.status,
     )
 
-    db.add(new_notification)
+    db.add(db_notification)
     db.commit()
-    db.refresh(new_notification)
+    db.refresh(db_notification)
 
-    return new_notification
-
-
-# ==========================================
-# Auto Create Notification from Alert
-# ==========================================
-
-def create_notification_from_alert(
-    db: Session,
-    alert
-):
-    notification = Notification(
-        title="Security Alert",
-        message=(
-            f"{alert.alert_type} detected for "
-            f"Employee ID {alert.employee_id}. "
-            f"{alert.description}"
-        ),
-        severity=alert.severity,
-    )
-
-    db.add(notification)
-    db.commit()
-    db.refresh(notification)
-
-    return notification
+    return db_notification
 
 
 # ==========================================
 # Get All Notifications
 # ==========================================
 
-def get_notifications(db: Session):
-    return db.query(Notification).all()
+def get_all_notifications(db: Session):
+
+    return (
+        db.query(Notification)
+        .order_by(Notification.created_at.desc())
+        .all()
+    )
 
 
 # ==========================================
 # Get Notification By ID
 # ==========================================
 
-def get_notification_by_id(
+def get_notification(
     db: Session,
-    notification_id: int
+    notification_id: int,
 ):
+
     return (
         db.query(Notification)
         .filter(Notification.id == notification_id)
@@ -72,21 +61,80 @@ def get_notification_by_id(
 
 
 # ==========================================
-# Delete Notification
+# Update Notification
 # ==========================================
 
-def delete_notification(
+def update_notification(
     db: Session,
-    notification_id: int
+    notification_id: int,
+    notification: NotificationUpdate,
 ):
+
+    db_notification = (
+        db.query(Notification)
+        .filter(Notification.id == notification_id)
+        .first()
+    )
+
+    if not db_notification:
+        return None
+
+    for key, value in notification.model_dump(
+        exclude_unset=True
+    ).items():
+        setattr(db_notification, key, value)
+
+    db.commit()
+    db.refresh(db_notification)
+
+    return db_notification
+
+
+# ==========================================
+# Mark Notification As Read
+# ==========================================
+
+def mark_as_read(
+    db: Session,
+    notification_id: int,
+):
+
     notification = (
         db.query(Notification)
         .filter(Notification.id == notification_id)
         .first()
     )
 
-    if notification:
-        db.delete(notification)
-        db.commit()
+    if not notification:
+        return None
+
+    notification.status = "Read"
+
+    db.commit()
+    db.refresh(notification)
+
+    return notification
+
+
+# ==========================================
+# Delete Notification
+# ==========================================
+
+def delete_notification(
+    db: Session,
+    notification_id: int,
+):
+
+    notification = (
+        db.query(Notification)
+        .filter(Notification.id == notification_id)
+        .first()
+    )
+
+    if not notification:
+        return None
+
+    db.delete(notification)
+    db.commit()
 
     return notification

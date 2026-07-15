@@ -1,10 +1,12 @@
 from sqlalchemy.orm import Session
 
 from models.alert import Alert
-from schemas.alert import AlertCreate, AlertUpdate
+from models.notification import Notification
 
-# Import Notification Service
-from services.notification_service import create_notification_from_alert
+from schemas.alert import (
+    AlertCreate,
+    AlertUpdate,
+)
 
 
 # ==========================================
@@ -13,19 +15,59 @@ from services.notification_service import create_notification_from_alert
 
 def create_alert(
     db: Session,
-    alert: AlertCreate
+    employee_id: int,
+    risk_score_id: int,
+    severity: str,
+    description: str,
 ):
-    new_alert = Alert(**alert.model_dump())
 
-    db.add(new_alert)
+    alert = Alert(
+        employee_id=employee_id,
+        risk_score_id=risk_score_id,
+        severity=severity,
+        description=description,
+        status="Open",
+    )
+
+    db.add(alert)
     db.commit()
-    db.refresh(new_alert)
+    db.refresh(alert)
 
-    # Automatically create notification for High/Critical alerts
-    if new_alert.severity in ["High", "Critical"]:
-        create_notification_from_alert(db, new_alert)
+    # ======================================
+    # Auto Notification
+    # ======================================
 
-    return new_alert
+    if severity in ["High", "Critical"]:
+
+        notification = Notification(
+            title=f"{severity} Risk Alert",
+            message=description,
+            notification_type="Alert",
+            status="Unread",
+        )
+
+        db.add(notification)
+        db.commit()
+
+    return alert
+
+
+# ==========================================
+# Manual Create Alert
+# ==========================================
+
+def create_manual_alert(
+    db: Session,
+    alert_data: AlertCreate,
+):
+
+    alert = Alert(**alert_data.model_dump())
+
+    db.add(alert)
+    db.commit()
+    db.refresh(alert)
+
+    return alert
 
 
 # ==========================================
@@ -33,17 +75,19 @@ def create_alert(
 # ==========================================
 
 def get_all_alerts(db: Session):
+
     return db.query(Alert).all()
 
 
 # ==========================================
-# Get Alert by ID
+# Get Alert
 # ==========================================
 
 def get_alert(
     db: Session,
-    alert_id: int
+    alert_id: int,
 ):
+
     return (
         db.query(Alert)
         .filter(Alert.id == alert_id)
@@ -58,26 +102,27 @@ def get_alert(
 def update_alert(
     db: Session,
     alert_id: int,
-    alert: AlertUpdate
+    alert_update: AlertUpdate,
 ):
-    existing_alert = (
+
+    alert = (
         db.query(Alert)
         .filter(Alert.id == alert_id)
         .first()
     )
 
-    if not existing_alert:
+    if not alert:
         return None
 
-    update_data = alert.model_dump(exclude_unset=True)
-
-    for key, value in update_data.items():
-        setattr(existing_alert, key, value)
+    for key, value in alert_update.model_dump(
+        exclude_unset=True
+    ).items():
+        setattr(alert, key, value)
 
     db.commit()
-    db.refresh(existing_alert)
+    db.refresh(alert)
 
-    return existing_alert
+    return alert
 
 
 # ==========================================
@@ -86,18 +131,19 @@ def update_alert(
 
 def delete_alert(
     db: Session,
-    alert_id: int
+    alert_id: int,
 ):
-    existing_alert = (
+
+    alert = (
         db.query(Alert)
         .filter(Alert.id == alert_id)
         .first()
     )
 
-    if not existing_alert:
+    if not alert:
         return None
 
-    db.delete(existing_alert)
+    db.delete(alert)
     db.commit()
 
-    return existing_alert
+    return alert

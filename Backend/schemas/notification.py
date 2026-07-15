@@ -1,12 +1,14 @@
-from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+
+from pydantic import BaseModel
 
 
 class NotificationBase(BaseModel):
     title: str
     message: str
-    severity: str
+    notification_type: str
+    status: str = "Unread"
 
 
 class NotificationCreate(NotificationBase):
@@ -16,12 +18,13 @@ class NotificationCreate(NotificationBase):
 class NotificationUpdate(BaseModel):
     title: Optional[str] = None
     message: Optional[str] = None
-    severity: Optional[str] = None
+    notification_type: Optional[str] = None
+    status: Optional[str] = None
 
 
 class NotificationResponse(NotificationBase):
     id: int
-    timestamp: datetime
+    created_at: datetime
 
     class Config:
         from_attributes = True

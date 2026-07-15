@@ -9,93 +9,64 @@ from services.dashboard_service import (
     get_department_summary,
     get_high_risk_employees,
     get_recent_activities,
-    get_top_alert_types,
-    get_alert_status,
+    get_top_alerts,
 )
-
-from schemas.dashboard import DashboardSummary
 
 router = APIRouter(
     prefix="/dashboard",
-    tags=["Dashboard"]
+    tags=["Dashboard"],
 )
 
 
-# ==================================================
+# ==========================================
 # Dashboard Summary
-# ==================================================
+# ==========================================
 
-@router.get(
-    "/summary",
-    response_model=DashboardSummary
-)
-def dashboard_summary(
-    db: Session = Depends(get_db)
-):
+@router.get("/summary")
+def dashboard_summary(db: Session = Depends(get_db)):
     return get_dashboard_summary(db)
 
 
-# ==================================================
-# Alert Severity
-# ==================================================
+# ==========================================
+# Alert Severity Summary
+# ==========================================
 
 @router.get("/alert-severity")
-def alert_severity(
-    db: Session = Depends(get_db)
-):
+def alert_severity(db: Session = Depends(get_db)):
     return get_alert_severity(db)
 
 
-# ==================================================
+# ==========================================
 # Department Summary
-# ==================================================
+# ==========================================
 
 @router.get("/department-summary")
-def department_summary(
-    db: Session = Depends(get_db)
-):
+def department_summary(db: Session = Depends(get_db)):
     return get_department_summary(db)
 
 
-# ==================================================
+# ==========================================
 # High Risk Employees
-# ==================================================
+# ==========================================
 
 @router.get("/high-risk-employees")
-def high_risk_employees(
-    db: Session = Depends(get_db)
-):
+def high_risk_employees(db: Session = Depends(get_db)):
     return get_high_risk_employees(db)
 
 
-# ==================================================
+# ==========================================
 # Recent Activities
-# ==================================================
+# ==========================================
 
 @router.get("/recent-activities")
-def recent_activities(
-    db: Session = Depends(get_db)
-):
+def recent_activities(db: Session = Depends(get_db)):
     return get_recent_activities(db)
 
 
-# ==================================================
-# Top Alert Types
-# ==================================================
+# ==========================================
+# Top Alerts
+# ==========================================
 
-@router.get("/top-alert-types")
-def top_alert_types(
-    db: Session = Depends(get_db)
-):
-    return get_top_alert_types(db)
-
-
-# ==================================================
-# Alert Status
-# ==================================================
-
-@router.get("/alert-status")
-def alert_status(
-    db: Session = Depends(get_db)
-):
-    return get_alert_status(db)
+@router.get("/top-alerts")
+def top_alerts(db: Session = Depends(get_db)):
+    return get_top_alerts(db)

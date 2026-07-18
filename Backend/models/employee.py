@@ -126,3 +126,11 @@ class Employee(Base):
         back_populates="employee",
         cascade="all, delete-orphan",
     )
+
+    # One Employee ↔ One Behavior Profile
+    behavior_profile = relationship(
+        "BehaviorProfile",
+        back_populates="employee",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )

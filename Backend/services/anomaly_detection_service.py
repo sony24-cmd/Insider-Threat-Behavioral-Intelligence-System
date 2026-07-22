@@ -1,44 +1,103 @@
-from typing import List
-
-from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
-
-from schemas.anomaly_detection import (
-    AnomalyDetectionResponse,
-)
-
-from services.anomaly_detection_service import (
-    get_all_anomalies,
-    get_employee_anomalies,
-)
-
-router = APIRouter(
-    prefix="/anomalies",
-    tags=["Anomaly Detection"],
-)
+from models.anomaly_detection import AnomalyDetection
 
 
-@router.get(
-    "/",
-    response_model=List[AnomalyDetectionResponse],
-)
-def fetch_all_anomalies(
-    db: Session = Depends(get_db),
+# ==========================================
+# Get All Anomalies
+# ==========================================
+
+def get_all_anomalies(
+    db: Session
 ):
-    return get_all_anomalies(db)
 
-
-@router.get(
-    "/employee/{employee_id}",
-    response_model=List[AnomalyDetectionResponse],
-)
-def fetch_employee_anomalies(
-    employee_id: int,
-    db: Session = Depends(get_db),
-):
-    return get_employee_anomalies(
-        db,
-        employee_id,
+    return (
+        db.query(AnomalyDetection)
+        .all()
     )
+
+
+# ==========================================
+# Get Employee Anomalies
+# ==========================================
+
+def get_employee_anomalies(
+    db: Session,
+    employee_id: int,
+):
+
+    return (
+        db.query(AnomalyDetection)
+        .filter(
+            AnomalyDetection.employee_id == employee_id
+        )
+        .all()
+    )
+
+
+# ==========================================
+# Save Anomaly
+# ==========================================
+
+def save_anomaly(
+    db: Session,
+    employee_id: int,
+    anomaly_score: float,
+    anomaly_level: str,
+    reason: str,
+):
+
+    anomaly = AnomalyDetection(
+
+        employee_id=employee_id,
+
+        anomaly_score=anomaly_score,
+
+        anomaly_level=anomaly_level,
+
+        reason=reason,
+
+    )
+
+
+    db.add(anomaly)
+    db.commit()
+    db.refresh(anomaly)
+
+    return anomaly
+
+
+
+# ==========================================
+# Feature Extraction
+# ==========================================
+
+def extract_employee_features(
+    db: Session,
+    employee_id: int,
+):
+
+    # Temporary feature extraction
+    # Later we connect CERT dataset features
+
+    return {
+
+        "login_count": 0,
+
+        "logout_count": 0,
+
+        "usb_connect": 0,
+
+        "usb_disconnect": 0,
+
+        "http_visits": 0,
+
+        "suspicious_http_visits": 0,
+
+        "after_hours_events": 0,
+
+        "unique_devices": 0,
+
+        "total_events": 0,
+
+    }

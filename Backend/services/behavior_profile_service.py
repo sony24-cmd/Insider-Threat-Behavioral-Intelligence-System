@@ -30,13 +30,15 @@ def create_behavior_profile(
 # Get All Behavior Profiles
 # ==========================================
 
-def get_all_behavior_profiles(db: Session):
+def get_all_behavior_profiles(
+    db: Session,
+):
 
     return db.query(BehaviorProfile).all()
 
 
 # ==========================================
-# Get Behavior Profile
+# Get Behavior Profile by Profile ID
 # ==========================================
 
 def get_behavior_profile(
@@ -46,7 +48,28 @@ def get_behavior_profile(
 
     return (
         db.query(BehaviorProfile)
-        .filter(BehaviorProfile.id == profile_id)
+        .filter(
+            BehaviorProfile.id == profile_id
+        )
+        .first()
+    )
+
+
+# ==========================================
+# NEW
+# Get Behavior Profile by Employee ID
+# ==========================================
+
+def get_behavior_profile_by_employee(
+    db: Session,
+    employee_id: int,
+):
+
+    return (
+        db.query(BehaviorProfile)
+        .filter(
+            BehaviorProfile.employee_id == employee_id
+        )
         .first()
     )
 
@@ -63,7 +86,9 @@ def update_behavior_profile(
 
     db_profile = (
         db.query(BehaviorProfile)
-        .filter(BehaviorProfile.id == profile_id)
+        .filter(
+            BehaviorProfile.id == profile_id
+        )
         .first()
     )
 
@@ -73,7 +98,11 @@ def update_behavior_profile(
     for key, value in profile.model_dump(
         exclude_unset=True
     ).items():
-        setattr(db_profile, key, value)
+        setattr(
+            db_profile,
+            key,
+            value,
+        )
 
     db.commit()
     db.refresh(db_profile)
@@ -92,7 +121,9 @@ def delete_behavior_profile(
 
     db_profile = (
         db.query(BehaviorProfile)
-        .filter(BehaviorProfile.id == profile_id)
+        .filter(
+            BehaviorProfile.id == profile_id
+        )
         .first()
     )
 

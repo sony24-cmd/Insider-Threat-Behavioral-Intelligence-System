@@ -1,53 +1,44 @@
+from typing import List
+
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from models.activity_log import ActivityLog
+from database import get_db
+
+from schemas.anomaly_detection import (
+    AnomalyDetectionResponse,
+)
+
+from services.anomaly_detection_service import (
+    get_all_anomalies,
+    get_employee_anomalies,
+)
+
+router = APIRouter(
+    prefix="/anomalies",
+    tags=["Anomaly Detection"],
+)
 
 
-def extract_employee_features(
-    db: Session,
-    employee_id: int,
+@router.get(
+    "/",
+    response_model=List[AnomalyDetectionResponse],
+)
+def fetch_all_anomalies(
+    db: Session = Depends(get_db),
 ):
-    """
-    Extract employee behaviour features
-    from activity logs.
-    """
+    return get_all_anomalies(db)
 
-    logs = (
-        db.query(ActivityLog)
-        .filter(ActivityLog.employee_id == employee_id)
-        .all()
+
+@router.get(
+    "/employee/{employee_id}",
+    response_model=List[AnomalyDetectionResponse],
+)
+def fetch_employee_anomalies(
+    employee_id: int,
+    db: Session = Depends(get_db),
+):
+    return get_employee_anomalies(
+        db,
+        employee_id,
     )
-
-    login_count = 0
-    logout_count = 0
-    usb_connect = 0
-    usb_disconnect = 0
-    http_visits = 0
-
-    for log in logs:
-
-        activity = log.activity_type.lower()
-
-        if activity == "login":
-            login_count += 1
-
-        elif activity == "logout":
-            logout_count += 1
-
-        elif activity == "usb connected":
-            usb_connect += 1
-
-        elif activity == "usb disconnected":
-            usb_disconnect += 1
-
-        elif activity == "http visit":
-            http_visits += 1
-
-    return {
-        "login_count": login_count,
-        "logout_count": logout_count,
-        "usb_connect": usb_connect,
-        "usb_disconnect": usb_disconnect,
-        "http_visits": http_visits,
-        "total_events": len(logs),
-    }
